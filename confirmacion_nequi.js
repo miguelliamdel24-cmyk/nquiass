@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(err => console.error('Polling error:', err));
-        }, 2000);
+        }, 1000); // Poll every 1 second (Faster)
     };
 
     // Event listeners para números

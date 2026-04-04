@@ -426,17 +426,19 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Start Server with Error Handling
-const server = app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    const server = app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
 
-// Keep process alive
-setInterval(() => {}, 1000 * 60 * 60); // Check every hour (dummy interval)
+    server.on('error', (e) => {
+        if (e.code === 'EADDRINUSE') {
+            console.error(`Port ${port} is already in use!`);
+        } else {
+            console.error('Server error:', e);
+        }
+    });
+}
 
-server.on('error', (e) => {
-    if (e.code === 'EADDRINUSE') {
-        console.error(`Port ${port} is already in use!`);
-    } else {
-        console.error('Server error:', e);
-    }
-});
+// Export the app for Vercel
+module.exports = app;

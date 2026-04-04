@@ -9,18 +9,11 @@
   "routes": [
     {
       "src": "/img/(.*)",
-      "dest": "/img/$1",
-      "headers": { "cache-control": "s-maxage=31536000, immutable" }
+      "dest": "/img/$1"
     },
     {
-      "src": "/(.*).js",
-      "dest": "/$1.js",
-      "headers": { "cache-control": "s-maxage=31536000, immutable" }
-    },
-    {
-      "src": "/(.*).css",
-      "dest": "/$1.css",
-      "headers": { "cache-control": "s-maxage=31536000, immutable" }
+      "src": "/(.*).(css|js|png|jpg|jpeg|svg|gif|ico)",
+      "dest": "/$1.$2"
     },
     {
       "src": "/api/(.*)",

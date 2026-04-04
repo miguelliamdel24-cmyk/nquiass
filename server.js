@@ -24,15 +24,11 @@ const ROUTES = {
 // Middleware for Mobile Detection
 const mobileCheck = (req, res, next) => {
     const ua = req.headers['user-agent'];
-    // Allow visualization in Trae
-    next();
-    /*
     if (/mobile|android|iphone|ipad|phone/i.test(ua)) {
         next();
     } else {
         res.send(''); // Send empty response (blank screen)
     }
-    */
 };
 
 // Middleware

